@@ -29,9 +29,9 @@ function App() {
         value: expenseValue,
       };
 
-      axios.post('http://localhost:3300/api/insert/expenses', newExpense)
+      axios.post('https://expetrack-backend.onrender.com/api/insert/expenses', newExpense)
         .then(response => {
-          axios.get('http://localhost:3300/api/expenses')
+          axios.get('https://expetrack-backend.onrender.com/api/expenses')
             .then(response => {
               setExpenses(response.data);
               setSelectedType('');
