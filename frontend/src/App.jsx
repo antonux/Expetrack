@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react'
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import axios from 'axios';
 
 function App() {
-  // const Expenses = [
-  //   { id: 1, Type: "Food", Value: "2342", Date: "11/29/2024" },
-  //   { id: 2, Type: "Transportation", Value: "5400", Date: "11/28/2024" },
-  //   { id: 3, Type: "Clothes", Value: "1200", Date: "11/29/2024" }
-  // ];
-  const [Expenses, setExpenses] = useState([
-    { id: 1, Type: "Food", Value: "2342", Date: "11/29/2024" },
-    { id: 2, Type: "Transportation", Value: "5400", Date: "11/28/2024" },
-    { id: 3, Type: "Clothes", Value: "1200", Date: "11/29/2024" }
-  ]);
+
+  const [expenses, setExpenses] = useState([]);
+
+
+  useEffect(() => {
+    axios.get('http://localhost:3300/api/expenses')
+      .then(response => {
+        setExpenses(response.data);
+      })
+      .catch(error => {
+        console.error("Error fetching expenses:", error);
+      });
+  }, []);
+
 
   const [selectedType, setSelectedType] = useState('');
   const [expenseValue, setExpenseValue] = useState('');
@@ -20,19 +25,29 @@ function App() {
   const handleAddExpense = () => {
     if (selectedType && expenseValue && !isNaN(expenseValue) && parseFloat(expenseValue) > 0) {
       const newExpense = {
-        id: Expenses.length + 1, // Simple increment for id
-        Type: selectedType,
-        Value: expenseValue,
-        Date: new Date().toLocaleDateString('en-US') // Current date in 'MM/DD/YYYY' format
+        type: selectedType,
+        value: expenseValue,
       };
 
-      setExpenses([...Expenses, newExpense]);
-      setSelectedType('');
-      setExpenseValue('');
+      axios.post('http://localhost:3300/api/insert/expenses', newExpense)
+        .then(response => {
+          axios.get('http://localhost:3300/api/expenses')
+            .then(response => {
+              setExpenses(response.data);
+              setSelectedType('');
+              setExpenseValue('');
+            })
+        })
+        .catch(error => {
+          console.log("Error adding expense:", error);
+          alert('Failed to add expense. Please try again.');
+        });
+
     } else {
       alert('Please fill out all fields correctly.');
     }
   };
+
 
 
 
@@ -42,7 +57,6 @@ function App() {
   const [expType, setExpType] = useState("");
 
   const handleSelect = (event) => {
-    console.log("Selected Value:", event.target.value);
     setExpType(event.target.value);
   };
 
@@ -56,19 +70,18 @@ function App() {
   }, []);
 
   // Filtered expenses based on the selected date range
-  const filteredExpenses = Expenses.filter((item) => {
-    const itemDate = new Date(item.Date);
+  const filteredExpenses = expenses.filter((item) => {
+    const itemDate = new Date(item.date);
     const isAfterStartDate = !startDate || itemDate >= new Date(startDate);
     const isBeforeEndDate = !endDate || itemDate <= new Date(endDate);
-    const isMatchingType = !expType || item.Type.toLowerCase() === expType.toLowerCase();
+    const isMatchingType = !expType || (item.type && item.type.toLowerCase() === expType.toLowerCase());
     return isAfterStartDate && isBeforeEndDate && isMatchingType;
   });
-  console.log(filteredExpenses)
 
 
   return (
     <>
-      <div className="flex justify-center items-center font-sans">
+      <div className="flex justify-center items-center font-sans px-2">
         <div className="maindiv w-[40rem] mt-20 flex flex-col gap-5">
 
           <h1 className='text-center text-4xl mb-10 font-bold'>Expetrack</h1>
@@ -161,9 +174,13 @@ function App() {
                   <tbody>
                     {filteredExpenses.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="py-2 px-4 border-b border-gray-200">{item.Type}</td>
-                        <td className="py-2 px-4 border-b border-gray-200">{item.Date}</td>
-                        <td className="py-2 px-4 border-b border-gray-200">₱{Number(item.Value.replace(/[^\d.-]/g, "")).toLocaleString("en-US")}</td>
+                        <td className="py-2 px-4 border-b border-gray-200">{item.type}</td>
+                        <td className="py-2 px-4 border-b border-gray-200">   {new Date(item.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: '2-digit'
+                        })}</td>
+                        <td className="py-2 px-4 border-b border-gray-200">₱{Number(item.value.replace(/[^\d.-]/g, "")).toLocaleString("en-US")}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -176,7 +193,7 @@ function App() {
                         ₱{/* Calculate the total */}
                         {filteredExpenses.reduce((total, item) => {
                           // Remove commas from the value string
-                          const numericValue = parseFloat((item.Value || "0").replace(/,/g, ""));
+                          const numericValue = parseFloat((item.value || "0").replace(/,/g, ""));
                           return total + numericValue;
                         }, 0).toLocaleString("en-US")}
                       </td>
