@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.listen(process.env.PORT, ()=>{
-    console.log("Sever is now listening at port");
+    console.log("Server is now listening at port");
 })
 
 client.connect();
