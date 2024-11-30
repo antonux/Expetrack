@@ -73,7 +73,6 @@ function App() {
     setEndDate(lastDayOfMonth);
   }, []);
 
-  // Filtered expenses based on the selected date range
   const filteredExpenses = expenses.filter((item) => {
     const itemDate = new Date(item.date);
     const normalizedItemDate = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
