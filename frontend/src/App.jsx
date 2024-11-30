@@ -6,15 +6,18 @@ import axios from 'axios';
 function App() {
 
   const [expenses, setExpenses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
 
   useEffect(() => {
     axios.get('https://expetrack-backend.onrender.com/api/expenses')
       .then(response => {
         setExpenses(response.data);
+        setIsLoading(false);
       })
       .catch(error => {
         console.error("Error fetching expenses:", error);
+        setIsLoading(false);
       });
   }, []);
 
@@ -172,17 +175,29 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredExpenses.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="py-2 px-4 border-b border-gray-200">{item.type}</td>
-                        <td className="py-2 px-4 border-b border-gray-200">   {new Date(item.date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: '2-digit'
-                        })}</td>
-                        <td className="py-2 px-4 border-b border-gray-200">₱{Number(item.value.replace(/[^\d.-]/g, "")).toLocaleString("en-US")}</td>
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan="3" className="text-center py-4">
+                          Loading...
+                        </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredExpenses.map((item) => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="py-2 px-4 border-b border-gray-200">{item.type}</td>
+                          <td className="py-2 px-4 border-b border-gray-200">
+                            {new Date(item.date).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "2-digit",
+                            })}
+                          </td>
+                          <td className="py-2 px-4 border-b border-gray-200">
+                            ₱{Number(item.value.replace(/[^\d.-]/g, "")).toLocaleString("en-US")}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                   <tfoot>
                     <tr>
