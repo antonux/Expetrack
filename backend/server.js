@@ -29,8 +29,10 @@ app.get('/api/expenses', async (req, res) => {
 app.post('/api/insert/expenses', async (req, res) => {
     const { type, value } = req.body;
     try {
-        const query = 'INSERT INTO EXPETRACK (type, value) VALUES ($1, $2);';
-        const values = [type, value];
+        const currentDatePHT = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+        const query = 'INSERT INTO EXPETRACK (type, value, date) VALUES ($1, $2, $3);';
+        const values = [type, value, currentDatePHT];
+
         const result = await client.query(query, values);
         res.status(201).json(result.rows[0]);
     } catch (error) {
