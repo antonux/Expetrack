@@ -36,6 +36,7 @@ function App() {
         .then(response => {
           axios.get('https://expetrack-backend.onrender.com/api/expenses')
             .then(response => {
+              console.log(response)
               setExpenses(response.data);
               setSelectedType('');
               setExpenseValue('');
@@ -75,9 +76,15 @@ function App() {
   // Filtered expenses based on the selected date range
   const filteredExpenses = expenses.filter((item) => {
     const itemDate = new Date(item.date);
-    const isAfterStartDate = !startDate || itemDate >= new Date(startDate);
-    const isBeforeEndDate = !endDate || itemDate <= new Date(endDate);
+    const normalizedItemDate = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
+
+    const normalizedStartDate = startDate ? new Date(new Date(startDate).setHours(0, 0, 0, 0)) : null;
+    const normalizedEndDate = endDate ? new Date(new Date(endDate).setHours(23, 59, 59, 999)) : null;
+
+    const isAfterStartDate = !normalizedStartDate || normalizedItemDate >= normalizedStartDate;
+    const isBeforeEndDate = !normalizedEndDate || normalizedItemDate <= normalizedEndDate;
     const isMatchingType = !expType || (item.type && item.type.toLowerCase() === expType.toLowerCase());
+
     return isAfterStartDate && isBeforeEndDate && isMatchingType;
   });
 
